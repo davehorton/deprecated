@@ -1,0 +1,13 @@
+{
+  "name": "drachtio-msml",
+  "description": "Node library for controlling msml-based media servers",
+  "version": "0.1.0",
+  "author": "Dave Horton <dave@dchorton.com>",
+  "main": "./lib/drachtio.js",
+  "dependencies": { 
+    "drachtio-client": "*"
+    ,"debug": "*" 
+    ,"underscore": "*"
+  },
+  "engines": { "node": "*" }
+}

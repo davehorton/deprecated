@@ -5,9 +5,9 @@
   "author": "Dave Horton <dave@dchorton.com>",
   "main": "./lib/drachtio.js",
   "dependencies": { 
-    "drachtio-client": "*"
-    ,"debug": "*" 
+    "debug": "*" 
     ,"underscore": "*"
+    ,"elementtree": ">=0.1.5"
   },
   "engines": { "node": "*" }
 }

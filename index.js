@@ -1,8 +1,42 @@
 var Msml = require('./lib/msml') 
+, fs = require('fs')
+, path = require('path')
+, basename = path.basename 
+, Router = require('./lib/router/router')
+,debug = require('debug')('msml') ;
+
 
 exports = module.exports = createMsml;
 
+createMsml.middleware = {};
+
 function createMsml( app ) {
-  var msml = new Msml( app ) ;
-  return msml;
+	if( createMsml.instance ) throw new Error('only a single msml instance is allowed') ;
+	var msml = new Msml( app ) ;
+	createMsml.instance = msml ;
+	return msml;
 };
+
+
+var router = new Router(createMsml);
+
+exports.__defineGetter__('router', function(){  
+	return router.middleware ;
+}) ;
+
+createMsml.findDialog = function( id ) {
+	debug('searching for active dialog with id %s', id) ;
+	return createMsml.instance.findDialog( id ) ;
+}
+
+/**
+ * Auto-load bundled middleware with getters.
+ */
+
+fs.readdirSync(__dirname + '/lib/middleware').forEach(function(filename){
+    if (!/\.js$/.test(filename)) return;
+    var name = basename(filename, '.js');
+    function load(){  return require('./lib/middleware/' + name); }
+    exports.middleware.__defineGetter__(name, load);
+    exports.__defineGetter__(name, load);
+});

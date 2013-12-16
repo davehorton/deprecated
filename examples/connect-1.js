@@ -5,31 +5,34 @@ var app = require('drachtio-client')()
 ,config = require('./test-config')
 ,debug = require('debug')('drachtio:msml-basic-play') ;
 
-var dlg, ep ;
+var dlg, conn ;
 
 app.connect( config, function() { debug('connected');} ) ;
 
 app.invite(function(req, res) {
 
-	msml.endpoint('sip:msml@192.168.173.139', {
-		remoteSdp: req.body
-	}, function( err, endpoint ){
+	msml.makeConnection('192.168.173.139', {
+		remote: {
+			sdp: req.body
+			,'content-type': req.get('content-type')
+		}
+	}, function( err, connection ){
 		if( err ) {
 			console.error('Unable to allocate endpoint: ' + err) ;
 			res.send(500);
 			return ;
 		}
 
-		ep = endpoint ;
+		conn = connection ;
 		if( !req.active ) {
 			ep.release() ;
 			return ;
 		}
 		res.send(200, {
 			headers: {
-				'Content-Type': ep['content-type']
+				'Content-Type': conn['content-type']
 			}
-			,body: ep.sdp
+			,body: conn.sdp
 		}, function( err, ack, dialog ) {
 
 			dlg = dialog ;
@@ -37,7 +40,7 @@ app.invite(function(req, res) {
 			console.log('connected successfully')
 			setTimeout( function() {
 				dlg.request('bye') ;
-				ep.release() ;
+				conn.release() ;
 			}, 3000) ;
 		}) ; 	
 	}) ;

@@ -46,43 +46,37 @@ function playFile() {
 
 	debug('connected, about to send play command') ;
 
-	var dialog = new conn.Dialog({
-		play: {
-			barge: true
-			,cleardb: false
-			,audio: {
-				uri:'file://provisioned/4300.wav'
-			}
-			,playexit: {
-				send: {
-					target:'source'
-					,event:'app.playDone'
-					,namelist: 'play.amt play.end'
-				}
+	var dialog = new conn.Dialog() ;
+	dialog.add('play', {
+		barge: true
+		,cleardb: false
+		,audio: {
+			uri:'file://provisioned/4300.wav'
+		}
+		,playexit: {
+			send: {
+				target:'source'
+				,event:'app.playDone'
+				,namelist: 'play.amt play.end'
 			}
 		}
-		,dtmf: {
-			fdt: '10s'
-			,idt: '6s'
-			,edt: '6s'
-			,cleardb: false
-			,pattern: {
-				digits: 'min=4;max=10;rtk=#'
-				,format: 'moml+digits'
-			}
-			,dtmfexit: {
-				send: {
-					target:'source'
-					,event:'app.dtmfDone'
-					,namelist: 'dtmf.digits dtmf.end'
-				}
+	})
+	.add('dtmf', {
+		fdt: '10s'
+		,idt: '6s'
+		,edt: '6s'
+		,cleardb: false
+		,pattern: {
+			digits: 'min=4;max=10;rtk=#'
+			,format: 'moml+digits'
+		}
+		,dtmfexit: {
+			send: {
+				target:'source'
+				,event:'app.dtmfDone'
+				,namelist: 'dtmf.digits dtmf.end'
 			}
 		}
-	}) ;
-
-	dialog.start( function( err, req, res ) {
-		if( err ) throw err ;
-		console.log('dialog started successfully') ;
 	}) 
 	.on('playDone', function(e){
 		debug('playDone, reason: %s, amount played: %s', e['play.end'], e['play.amt']) ;
@@ -92,6 +86,10 @@ function playFile() {
 	}) 
 	.on('exit', function(e){
 		debug('my play dialog exited') ;
+	}) 
+	.start( function( err, req, res ) {
+		if( err ) throw err ;
+		console.log('dialog started successfully') ;
 	}) ;
 
 }

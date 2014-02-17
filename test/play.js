@@ -1,26 +1,15 @@
-# drachtio-msml
-
-
- [![Build Status](https://secure.travis-ci.org/davehorton/drachtio-msml.png)](http://travis-ci.org/davehorton/drachtio-msml)
-
- drachtio-msml is [drachtio](https://github.com/davehorton/drachtio) middleware that enables applications to incorporate audio and video control from [MSML](http://en.wikipedia.org/wiki/MSML) IP media servers.
-
- ```js
-var app = require('drachtio')()
-,msml = require('drachtio-msml')
+var app = require('drachtio-client')()
+,msml = require('..')
 ,msmlApp = msml(app)
-,RedisStore = require('drachtio-redis')(drachtio) 
 ,siprequest = app.uac
 ,_=require('underscore')
-,config = require('./test-config'),
-,debug = require('debug') ;
+,config = require('./fixtures/config')
+,debug = require('debug')('drachtio:msml-basic-play') ;
 
 var dlg, conn ;
 
-app.connect( config ) ;
+app.connect( config, function() { debug('connected');} ) ;
 
-app.use( drachtio.session({store: new RedisStore({host: 'localhost'}) }) ) ;
-app.use( drachtio.dialog() ) ;
 app.use( msml.msmlparser() ) ;
 app.use( 'info', msml.router ) ;
 app.use( app.router ) ;
@@ -34,19 +23,31 @@ app.invite(function(req, res) {
 			,'content-type': req.get('content-type')
 		}
 	}, function( err, connection, dialog ){
-		if( err ) throw err ;
+		if( err ) {
+			console.error('Unable to allocate endpoint: ' + err) ;
+			return ;
+		}
 
-		dialog.session.conn = connection ;
+		conn = connection ;
+		dlg = dialog ;
 
-		playFile(connection) ;
+		dlg.bye(onBye) ;
+
+		playFile() ;
 
 	}) ;
 }) ;
 
-function playFile(conn) {
+function onBye( req, res ) {
+	conn.release() ;
+}
 
-	var media_dialog = new conn.Dialog() ;
-	media_dialog.add('play', {
+function playFile() {
+
+	debug('connected, about to send play command') ;
+
+	var dialog = new conn.Dialog() ;
+	dialog.add('play', {
 		barge: true
 		,cleardb: false
 		,audio: {
@@ -92,11 +93,3 @@ function playFile(conn) {
 	}) ;
 
 }
-app.on('sipdialog:terminate', function(e){
-	console.log('caller hung up') ;
-
-	/* terminate media server dialog */
-	var dialog = e.target ;
-	dialog.session.conn.terminate() ;
-}); 
- ```

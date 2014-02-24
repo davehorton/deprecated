@@ -1,4 +1,4 @@
-var app = require('drachtio-client')()
+var app = require('drachtio')()
 ,msml = require('..')
 ,msmlApp = msml(app)
 ,siprequest = app.uac
@@ -8,7 +8,7 @@ var app = require('drachtio-client')()
 
 var dlg, conn, controlChannel, conf;
 
-app.connect( config, function() { debug('connected');} ) ;
+app.connect( config ) ;
 
 app.use( msml.msmlparser() ) ;
 app.use( 'info', msml.router ) ;

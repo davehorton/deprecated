@@ -3,6 +3,7 @@ var Msml = require('./lib/msml')
 , path = require('path')
 , basename = path.basename 
 , Router = require('./lib/router/router')
+,redis = require('redis')
 ,debug = require('debug')('msml') ;
 
 
@@ -10,14 +11,23 @@ exports = module.exports = createMsml;
 
 createMsml.middleware = {};
 
-function createMsml( app ) {
+function createMsml( opts ) {
+
 	if( createMsml.instance ) throw new Error('only a single msml instance is allowed') ;
-	var msml = new Msml( app ) ;
+	var msml = new Msml( opts ) ;
 	createMsml.instance = msml ;
 	return msml;
 };
 
+/*
+createMsml.router = function(opts) {
+	//TODO: create redis client using opts, set createMsml.instance.redis
+	
 
+	var router = new Router(createMsml) ;
+	return router.middleware ;
+}
+*/
 var router = new Router(createMsml);
 
 exports.__defineGetter__('router', function(){  
@@ -25,7 +35,6 @@ exports.__defineGetter__('router', function(){
 }) ;
 
 createMsml.findDialog = function( id ) {
-	debug('searching for active dialog with id %s', id) ;
 	return createMsml.instance.findDialog( id ) ;
 }
 

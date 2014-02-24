@@ -1,13 +1,19 @@
-var app = require('drachtio-client')()
-,msml = require('..')(app)
-,siprequest = app.uac
-,_=require('underscore')
+var msml = require('..')
+,drachtio = require('drachtio')
+,app = drachtio()
+,msmlApp = msml(app)
+,RedisStore = require('drachtio-redis')(drachtio) 
+,store = new RedisStore({host: 'localhost', prefix:''})
 ,config = require('./test-config')
 ,debug = require('debug')('drachtio:msml-basic-play') ;
 
-var dlg, conn ;
+app.use( drachtio.session({store: store}) ) ;
+app.use( drachtio.dialog() ) ;
+app.use( msml.msmlparser() ) ;
+app.use( 'info', msml.router ) ;
+app.use( app.router ) ;
 
-app.connect( config, function() { debug('connected');} ) ;
+app.connect( config ) ;
 
 app.invite(function(req, res) {
 
@@ -16,32 +22,20 @@ app.invite(function(req, res) {
 			sdp: req.body
 			,'content-type': req.get('content-type')
 		}
-	}, function( err, connection ){
-		if( err ) {
-			console.error('Unable to allocate endpoint: ' + err) ;
-			res.send(500);
-			return ;
-		}
+	})
+	.pipe( res, function( err, conn ){
+		if( err ) throw err ;
 
-		conn = connection ;
-		if( !req.active ) {
-			ep.release() ;
-			return ;
-		}
-		res.send(200, {
-			headers: {
-				'Content-Type': conn['content-type']
-			}
-			,body: conn.sdp
-		}, function( err, ack, dialog ) {
+		debug('established connection ', conn) ;
 
-			dlg = dialog ;
-
-			console.log('connected successfully')
-			setTimeout( function() {
-				dlg.request('bye') ;
-				conn.release() ;
-			}, 3000) ;
-		}) ; 	
+		req.session.connection = conn ;
 	}) ;
+}) ;
+
+app.on('sipdialog:create', function(e) {
+	setTimeout( function(){
+		debug('time to tear down call') ;
+		e.target.terminate() ;
+		e.session.connection.terminate() ;
+	}, 3000) ;
 }) ;

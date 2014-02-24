@@ -5,9 +5,17 @@
   "author": "Dave Horton <dave@dchorton.com>",
   "main": "./lib/drachtio.js",
   "dependencies": { 
-    "debug": "*" 
+    "drachtio": "*"
+    ,"redis": "0.9.x"
+    ,"debug": "*" 
     ,"underscore": "*"
+    ,"node-uuid": ">=1.4.1"
+    ,"async": ">=0.2.10"
     ,"elementtree": ">=0.1.5"
+  },
+  "devDependencies": {
+    "drachtio-redis": "*"
+    ,"jsdoc": ">=3.3.0-*"
   },
   "engines": { "node": "*" }
 }

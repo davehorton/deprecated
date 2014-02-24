@@ -11,10 +11,10 @@ exports = module.exports = createMsml;
 
 createMsml.middleware = {};
 
-function createMsml( opts ) {
+function createMsml( app ) {
 
 	if( createMsml.instance ) throw new Error('only a single msml instance is allowed') ;
-	var msml = new Msml( opts ) ;
+	var msml = new Msml( app ) ;
 	createMsml.instance = msml ;
 	return msml;
 };

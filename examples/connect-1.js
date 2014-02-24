@@ -17,7 +17,7 @@ app.connect( config ) ;
 
 app.invite(function(req, res) {
 
-	msml.makeConnection('192.168.173.139', {
+	msmlApp.makeConnection('192.168.173.139', {
 		remote: {
 			sdp: req.body
 			,'content-type': req.get('content-type')

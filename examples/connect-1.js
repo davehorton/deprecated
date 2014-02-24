@@ -33,9 +33,13 @@ app.invite(function(req, res) {
 }) ;
 
 app.on('sipdialog:create', function(e) {
-	setTimeout( function(){
-		debug('time to tear down call') ;
-		e.target.terminate() ;
-		e.session.connection.terminate() ;
-	}, 3000) ;
+	debug('sip dialog created, role: ', e.target.role);
+}) ;
+
+app.on('sipdialog:terminate', function(e) {
+	debug('sip dialog terminated, role: ', e.target.role);
+	debug('session: ', e.session) ;
+
+	var conn = e.session.connection ;
+	conn.terminate() ;
 }) ;

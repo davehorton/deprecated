@@ -33,11 +33,11 @@ app.invite(function(req, res) {
 }) ;
 
 app.on('sipdialog:create', function(e) {
-	debug('sip dialog created, role: ', e.target.role);
+	debug('sip dialog created, event: ', e);
 }) ;
 
 app.on('sipdialog:terminate', function(e) {
-	debug('sip dialog terminated, role: ', e.target.role);
+	debug('sip dialog terminated, event : ', e);
 	debug('session: ', e.session) ;
 
 	var conn = e.session.connection ;

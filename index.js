@@ -4,6 +4,8 @@ var Msml = require('./lib/msml')
 , basename = path.basename 
 , Router = require('./lib/router/router')
 ,redis = require('redis')
+,Connection = require('./lib/connection')
+,ControlChannel = require('./lib/controlchannel')
 ,debug = require('debug')('msml') ;
 
 
@@ -14,20 +16,16 @@ createMsml.middleware = {};
 function createMsml( app ) {
 
 	if( createMsml.instance ) throw new Error('only a single msml instance is allowed') ;
+
 	var msml = new Msml( app ) ;
 	createMsml.instance = msml ;
 	return msml;
 };
 
-/*
-createMsml.router = function(opts) {
-	//TODO: create redis client using opts, set createMsml.instance.redis
-	
+/** add the classes we want to be able to rehydrate from storage */
+var MultiKeySession = require('drachtio').MultiKeySession ;
+MultiKeySession.addResolvers([Connection,ControlChannel]) ;
 
-	var router = new Router(createMsml) ;
-	return router.middleware ;
-}
-*/
 var router = new Router(createMsml);
 
 exports.__defineGetter__('router', function(){  

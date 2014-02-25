@@ -23,29 +23,17 @@ app.invite(function(req, res) {
 		if( err ) throw err ;
 		debug('created control channel (callback) ', channel) ;
 		channel.session.user = 'daveh' ;
+
+		setTimeout( function() {
+			channel.terminate() ;
+			res.send(500) ;
+		}, 2000) ;
 	}) ;
-}) ;
-
-app.on('sipdialog:create', function(e) {
-	debug('sip dialog created');
-	var dialog = e.target ;
-	var session = e.session ;
-
-}) ;
-
-app.on('sipdialog:terminate', function(e) {
-	debug('sip dialog terminated');
-	var dialog = e.target ;
-	var session = e.session ;
-
-	var conn = session.connection ;
-	conn.terminate() ;
 }) ;
 
 app.on('msml:channel:create', function(e) {
 	debug('control channel created') ;
 	debug('session: ', e.session) ;
-	debug('channel: ', e.target) ;
 }) ;
 
 app.on('msml:channel:terminate', function(e) {

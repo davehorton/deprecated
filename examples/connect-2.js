@@ -22,8 +22,7 @@ app.invite(function(req, res) {
 			sdp: req.body
 			,'content-type': req.get('content-type')
 		}
-	})
-	.pipe( res ) ;
+	}).pipe( res ) ;
 }) ;
 
 app.on('msml:connection:create', function(e) {

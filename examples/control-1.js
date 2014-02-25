@@ -18,15 +18,11 @@ app.connect( config ) ;
 app.invite(function(req, res) {
 
 	msmlApp.makeControlChannel('209.251.49.158', {
-		remote: {
-			sdp: req.body
-			,'content-type': req.get('content-type')
-		}
-	})
-	.pipe( res, function( err, conn ){
+		session: req.session
+	}, function(err, channel){
 		if( err ) throw err ;
-
-		req.session.connection = conn ;
+		debug('created control channel (callback) ', channel) ;
+		channel.user = 'daveh' ;
 	}) ;
 }) ;
 
@@ -44,4 +40,16 @@ app.on('sipdialog:terminate', function(e) {
 
 	var conn = session.connection ;
 	conn.terminate() ;
+}) ;
+
+app.on('msml:channel:create', function(e) {
+	debug('control channel created') ;
+	debug('session: ', e.session) ;
+	debug('channel: ', e.target) ;
+}) ;
+
+app.on('msml:channel:terminate', function(e) {
+	debug('control channel terminated') ;
+	debug('session: ', e.session) ;
+	debug('channel: ', e.target) ;
 }) ;

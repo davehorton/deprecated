@@ -26,8 +26,6 @@ app.invite(function(req, res) {
 	.pipe( res, function( err, conn ){
 		if( err ) throw err ;
 
-		debug('established connection ', conn) ;
-
 		req.session.connection = conn ;
 	}) ;
 }) ;

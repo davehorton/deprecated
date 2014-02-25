@@ -21,7 +21,7 @@ app.invite(function(req, res) {
 		session: req.session
 	}, function(err, channel){
 		if( err ) throw err ;
-		debug('created control channel (callback) ', channel) ;
+		debug('created control channel (callback) ') ;
 		channel.session.user = 'daveh' ;
 
 		setTimeout( function() {
@@ -32,7 +32,7 @@ app.invite(function(req, res) {
 }) ;
 
 app.on('msml:channel:create', function(e) {
-	debug('control channel created') ;
+	debug('created control channel (event)') ;
 	debug('session: ', e.session) ;
 }) ;
 

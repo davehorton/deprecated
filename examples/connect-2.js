@@ -22,6 +22,7 @@ app.invite(function(req, res) {
 			sdp: req.body
 			,'content-type': req.get('content-type')
 		}
+		,session: req.session
 	}).pipe( res ) ;
 }) ;
 

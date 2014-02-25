@@ -22,7 +22,7 @@ app.invite(function(req, res) {
 	}, function(err, channel){
 		if( err ) throw err ;
 		debug('created control channel (callback) ', channel) ;
-		channel.user = 'daveh' ;
+		channel.session.user = 'daveh' ;
 	}) ;
 }) ;
 

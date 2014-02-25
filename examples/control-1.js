@@ -17,25 +17,24 @@ app.connect( config ) ;
 
 app.invite(function(req, res) {
 
-	msmlApp.makeConnection('209.251.49.158', {
+	msmlApp.makeControlChannel('209.251.49.158', {
 		remote: {
 			sdp: req.body
 			,'content-type': req.get('content-type')
 		}
-	}).pipe( res ) ;
-}) ;
+	})
+	.pipe( res, function( err, conn ){
+		if( err ) throw err ;
 
-app.on('msml:connection:create', function(e) {
-	debug('connection created') ;
-	debug('session: ', e.session) ;
-	debug('connection: ', e.target) ;
-	e.session.connection = e.target ;
+		req.session.connection = conn ;
+	}) ;
 }) ;
 
 app.on('sipdialog:create', function(e) {
 	debug('sip dialog created');
 	var dialog = e.target ;
 	var session = e.session ;
+
 }) ;
 
 app.on('sipdialog:terminate', function(e) {

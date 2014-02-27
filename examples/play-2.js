@@ -80,7 +80,7 @@ function playFile( conn ) {
 	}) 
 	.start( function( err, req, res) {
 		if( err ) throw err ;
-		console.log('media dialog started successfully') ;
+		debug('media dialog started successfully') ;
 	}) ;
 }
 

@@ -28,7 +28,6 @@ app.invite(function(req, res) {
 
 app.on('sipdialog:create', function(e) {
 	debug('sip dialog created');
-	e.session.sipDialog = e.target ;
 }) ;
 
 app.on('msml:connection:create', function(e) {
@@ -81,11 +80,12 @@ function playFile( conn ) {
 	}, function(err, dialog ) {
 		if( err ) throw err ;
 		debug('media dialog started (callback)') ;
+		debug('dialog session: ', dialog.session) ;
 	}) ;
 }
 
 app.on('msml:dialog:create', function(e) {
-	debug('media dialog started (event): ') ;
+	debug('media dialog started (event): ', e.session ) ;
 }) ;
 app.on('msml:dialog:terminate', function(e) {
 	debug('media dialog terminated') ;

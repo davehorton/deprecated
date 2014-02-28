@@ -1,0 +1,31 @@
+{
+  "name": "drachtio-redis",
+  "description": "Redis session store for use with drachtio",
+  "version": "1.0.0",
+  "author": {
+    "name": "Dave Horton",
+    "email": "dave@dchorton.com"
+  },
+  "main": "./index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:davehorton/drachtio-redis.git"
+  },
+  "dependencies": {
+    "redis": "0.9.x",
+    "debug": "*"
+  },
+  "devDependencies": {
+    "connect": "*"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "bugs": {
+    "url": "https://github.com/davehorton/drachtio-redis/issues"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "license": "MIT"
+}

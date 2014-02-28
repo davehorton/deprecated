@@ -6,6 +6,7 @@ var Msml = require('./lib/msml')
 ,redis = require('redis')
 ,Connection = require('./lib/connection')
 ,ControlChannel = require('./lib/controlchannel')
+,Dialog = require('./lib/dialog')
 ,debug = require('debug')('msml') ;
 
 
@@ -24,7 +25,7 @@ function createMsml( app ) {
 
 /** add the classes we want to be able to rehydrate from storage */
 var MultiKeySession = require('drachtio').MultiKeySession ;
-MultiKeySession.addResolvers([Connection,ControlChannel]) ;
+MultiKeySession.addResolvers([Connection,ControlChannel,Dialog]) ;
 
 var router = new Router(createMsml);
 

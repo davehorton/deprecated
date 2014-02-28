@@ -85,13 +85,13 @@ function playFile( conn ) {
 }
 
 app.on('msml:dialog:create', function(e) {
-	debug('media dialog started (event)') ;
+	debug('media dialog started (event): ') ;
 }) ;
 app.on('msml:dialog:terminate', function(e) {
 	debug('media dialog terminated') ;
 }) ;
 app.on('msml:dialog:playDone', function(e) {
-	debug('playDone, reason: %s, amount played: %s', e['play.end'], e['play.amt']) ;
+	debug('playDone, reason: %s, amount played: %s', e.data['play.end'], e.data['play.amt']) ;
 }) ;
 app.on('msml:dialog:dtmfDone', function(e) {
 	debug('dtmfDone, reason: %s, digits: %s', e['dtmf.end'], e['dtmf.digits']) ;

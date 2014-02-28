@@ -47,7 +47,7 @@ app.on('sipdialog:terminate', function(e) {
 function playFile( conn ) {
 
 	conn.makeDialog({
-		'play', {
+		'play': {
 			barge: true
 			,cleardb: false
 			,audio: {
@@ -61,7 +61,7 @@ function playFile( conn ) {
 				}
 			}
 		}
-		'dtmf', {
+		,'dtmf': {
 			fdt: '10s'
 			,idt: '6s'
 			,edt: '6s'

@@ -12,9 +12,10 @@
     ,"node-uuid": ">=1.4.1"
     ,"async": ">=0.2.10"
     ,"elementtree": ">=0.1.5"
+    ,"sdp-transform": ">=0.6.0"
   },
   "devDependencies": {
-    "drachtio-redis": "*"
+    "drachtio-redis": ">=1.0.3"
     ,"jsdoc": ">=3.3.0-*"
   },
   "engines": { "node": "*" }

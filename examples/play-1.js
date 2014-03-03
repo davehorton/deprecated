@@ -1,53 +1,52 @@
-var app = require('drachtio-client')()
-,msml = require('..')
+var msml = require('..')
+,drachtio = require('drachtio')
+,app = drachtio()
 ,msmlApp = msml(app)
-,siprequest = app.uac
-,_=require('underscore')
+,RedisStore = require('drachtio-redis')(drachtio) 
+,store = new RedisStore({host: 'localhost', prefix:''})
 ,config = require('./test-config')
 ,debug = require('debug')('drachtio:msml-basic-play') ;
 
-var dlg, conn ;
-
-app.connect( config, function() { debug('connected');} ) ;
-
+app.use( drachtio.session({store: store}) ) ;
+app.use( drachtio.dialog() ) ;
 app.use( msml.msmlparser() ) ;
 app.use( 'info', msml.router ) ;
 app.use( app.router ) ;
 
+app.connect( config ) ;
+
 app.invite(function(req, res) {
 
-	msmlApp.makeConnection('192.168.173.139', {
-		request: req
-		,remote: {
+	msmlApp.makeConnection('209.251.49.158', {
+		remote: {
 			sdp: req.body
 			,'content-type': req.get('content-type')
 		}
-	}, function( err, connection, dialog ){
-		if( err ) {
-			console.error('Unable to allocate endpoint: ' + err) ;
-			return ;
-		}
-
-		conn = connection ;
-		dlg = dialog ;
-
-		dlg.bye(onBye) ;
-
-		playFile() ;
-
-	}) ;
+		,session: req.session
+	}).pipe( res ) ;
 }) ;
 
-function onBye( req, res ) {
-	conn.release() ;
-}
+app.on('sipdialog:create', function(e) {
+	debug('sip dialog created');
+}) ;
 
-function playFile() {
+app.on('msml:connection:create', function(e) {
+	debug('connection created') ;
+	e.session.msConnection = e.target ;
 
-	debug('connected, about to send play command') ;
+	playFile(e.target) ;
+}) ;
 
-	var dialog = new conn.Dialog({
-		play: {
+app.on('sipdialog:terminate', function(e) {
+	debug('sip dialog terminated');
+
+	e.session.msConnection.terminate() ;
+}) ;
+
+function playFile( conn ) {
+
+	conn.makeDialog({
+		'play': {
 			barge: true
 			,cleardb: false
 			,audio: {
@@ -61,7 +60,7 @@ function playFile() {
 				}
 			}
 		}
-		,dtmf: {
+		,'dtmf': {
 			fdt: '10s'
 			,idt: '6s'
 			,edt: '6s'
@@ -78,20 +77,22 @@ function playFile() {
 				}
 			}
 		}
-	}) ;
-
-	dialog.start( function( err, req, res ) {
+	}, function(err, dialog ) {
 		if( err ) throw err ;
-		console.log('dialog started successfully') ;
-	}) 
-	.on('playDone', function(e){
-		debug('playDone, reason: %s, amount played: %s', e['play.end'], e['play.amt']) ;
-	}) 
-	.on('dtmfDone', function(e){
-		debug('dtmfDone, reason: %s, digits: %s', e['dtmf.end'], e['dtmf.digits']) ;
-	}) 
-	.on('exit', function(e){
-		debug('my play dialog exited') ;
+		debug('media dialog started (callback)') ;
+		debug('dialog session: ', dialog.session) ;
 	}) ;
-
 }
+
+app.on('msml:dialog:create', function(e) {
+	debug('media dialog started (event): ', e.session ) ;
+}) ;
+app.on('msml:dialog:terminate', function(e) {
+	debug('media dialog terminated') ;
+}) ;
+app.on('msml:dialog:playDone', function(e) {
+	debug('playDone, reason: %s, amount played: %s', e.data['play.end'], e.data['play.amt']) ;
+}) ;
+app.on('msml:dialog:dtmfDone', function(e) {
+	debug('dtmfDone, reason: %s, digits: %s', e['dtmf.end'], e['dtmf.digits']) ;
+}) ;

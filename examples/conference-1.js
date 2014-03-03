@@ -1,92 +1,66 @@
-var app = require('drachtio')()
-,msml = require('..')
+var msml = require('..')
+,drachtio = require('drachtio')
+,app = drachtio()
 ,msmlApp = msml(app)
-,siprequest = app.uac
-,_=require('underscore')
+,RedisStore = require('drachtio-redis')(drachtio) 
+,store = new RedisStore({host: 'localhost', prefix:''})
 ,config = require('./test-config')
-,debug = require('debug')('drachtio:msml-basic-play') ;
+,debug = require('debug')('drachtio:msml-example') ;
 
-var dlg, conn, controlChannel, conf;
-
-app.connect( config ) ;
-
+app.use( drachtio.session({store: store}) ) ;
+app.use( drachtio.dialog() ) ;
 app.use( msml.msmlparser() ) ;
 app.use( 'info', msml.router ) ;
 app.use( app.router ) ;
 
-app.invite(function(req, res) {
+app.connect( config ) ;
 
-	msmlApp.makeConnection('209.251.49.158', {
-		request: req
-		,remote: {
-			sdp: req.body
-			,'content-type': req.get('content-type')
-		}
-	}, function( err, connection, dialog ){
-		if( err ) {
-			console.error('Unable to allocate endpoint: ' + err) ;
-			return ;
-		}
+app.once('connect', function() {
+	msmlApp.makeControlChannel('209.251.49.158', function(err, channel){
+		debug('made control channel: ', channel) ;
 
-		conn = connection ;
-		dlg = dialog ;
-
-		dlg.bye(onBye) ;
-
-		playFile() ;
-
-	}) ;
+		channel.makeConference( {
+			deletewhen: 'nocontrol'
+			,audiomix: {
+				id: 1
+				,samplerate: 8000
+				,'n-loudest': {
+					n: 3
+				}
+			}
+		}, function(err, conference){
+			if( err ) throw err ;
+			debug('made conference: ', conference) ;
+			conference.session.channel = channel ;
+		}) ;
+	}) ;	
 }) ;
 
-function onBye( req, res ) {
-	conn.release() ;
-}
+app.on('msml:channel:create', function(e){
+	debug('control channel created') ;
+	e.session.user = 'daveh'
+})
+.on('msml:channel:terminate', function(e){
+	debug('control channel terminated, user: ', e.session.user) ;
+})
+.on('msml:conference:create', function(e) {
+	debug('conference created, user: ', e.session.user) ;
+	var conference = e.target
+	,channel = e.session.channel ;
 
-function playFile() {
-
-	debug('connected, about to send play command') ;
-
-	var dialog = new conn.Dialog() ;
-	dialog.add('play', {
-		barge: true
-		,cleardb: false
-		,audio: {
-			uri:'file://provisioned/4300.wav'
-		}
-		,playexit: {
-			send: {
-				target:'source'
-				,event:'app.playDone'
-				,namelist: 'play.amt play.end'
-			}
-		}
-	})
-	.on('exit', function(e){
-		debug('my play dialog exited') ;
-		makeConference() ;
-	}) 
-	.start( function( err, req, res ) {
-		if( err ) throw err ;
-		console.log('dialog started successfully') ;
-	}) ;
-}
-
-function makeConference() {
-	msmlApp.makeControlChannel('192.168.173.139', function( err, channel ){
-		if( err ) {
-			console.error('Unable to allocate control channel: ' + err) ;
-			return ;
-		}
-		controlChannel = channel ;
-
-		conf = new channel.Conference() ;
-		conf.add('audiomix', {});
-		conf.create( function( err, req, res ){
-			if( err ) throw error ;
-			console.log('conference was successfully created') ;
-		})
-		.on('exit', function(e){
-			debug('my conference exited'); 
+	setTimeout( function() {
+		debug('terminating conference') ;
+		conference.terminate( function() {
+			debug('terminating control channel') ;
+			channel.terminate( function() {
+				app.disconnect() ;			
+			}) ;	
 		}) ;
-	}) ;
-}
+	}, 2000) ;
+
+})
+.on('msml:conference:terminate', function(e){
+	debug('conference terminated, user: ', e.session.user) ;
+	e.session.user = 'bill' ;
+})
+

@@ -5,6 +5,8 @@
 
  drachtio-msml is [drachtio](https://github.com/davehorton/drachtio) middleware that enables applications to incorporate audio and video control from [MSML](http://en.wikipedia.org/wiki/MSML) IP media servers.
 
+
+Sample video announcement app:
  ```js
 var msml = require('../..')
 ,drachtio = require('drachtio')
@@ -21,7 +23,7 @@ app.use( msml.msmlparser() ) ;
 app.use( 'info', msml.router ) ;
 app.use( app.router ) ;
 
-app.connect( config.drachtio ) ;
+app.connect( _.extend( config.drachtio, {appName: 'video-announcement'} ) ) ;
 
 /* receive invites, connect call to the media server, and begin playing announcement */
 app.invite(function(req, res) {	
@@ -59,7 +61,10 @@ app.invite(function(req, res) {
 
 		conn.session.msConnection = conn ;
 		conn.makeDialog( assemblePlayVideo( anncFile ), function(err, dialog ) {
-			if( err ) throw err ;
+			if( err ) {
+				console.error('error starting dialog: ' + err ) ;
+				throw err ;
+			}
 			debug('media dialog started, id: ', dialog.id) ;
 		}) ;
 	}) ;
@@ -67,11 +72,18 @@ app.invite(function(req, res) {
 
 /* event handlers */
 app.on('sipdialog:create', function(e) {
-	if( e.target.role == 'uas' ) e.session.uasLeg = e.target ;
+	debug('got sipdialog create, role is %s', e.target.role) ;
+	if( e.target.role == 'uas' ) {
+		e.session.uasLeg = e.target ;
+		e.session.save() ;
+	}
 }) 
 .on('sipdialog:terminate', function(e) { 
 	endCall( e.session.uasLeg, e.session.msConnection ) ; 
 }) 
+.on('msml:dialog:create', function(e) {
+	debug('msml dialog create event handler') ;
+})
 .on('msml:dialog:terminate', function(e) { 
 	endCall( e.session.uasLeg, e.session.msConnection ) ; 
 }) 

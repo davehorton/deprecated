@@ -1,0 +1,25 @@
+{
+  "name": "drachtio-session"
+  ,"description": "session storage for drachtio applications"
+  ,"version": "0.0.1"
+  ,"author": "Dave Horton <dave@dchorton.com>"
+  ,"main": "./index.js"
+  ,"dependencies": { 
+    "utils-merge": "1.0.0"
+    ,"cookie": "*"
+    ,"debug": "*" 
+    ,"underscore": "*"
+    ,"node-uuid": ">=1.4.1"
+    ,"async": ">=0.2.10"
+    ,"crc": ">=0.2.1"
+  }
+  ,"devDependencies": {
+    "drachtio-redis": ">=1.0.3"
+  },
+  "engines": { "node": ">=0.10" }
+  ,"license": "MIT"
+  ,"repository": {
+    "type" :"git"
+    ,"url": "https://github.com/davehorton/drachtio"
+  }
+}

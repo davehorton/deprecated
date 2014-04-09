@@ -1,8 +1,8 @@
 
-var MKSession = require('./session/multikeysession')
+var MKSession = require('./lib/multikeysession')
   , debug = require('debug')('drachtio:session')
-  , MemoryStore = require('./session/memory')
-  , Store = require('./session/store') 
+  , MemoryStore = require('./lib/memory')
+  , Store = require('./lib/store') 
   , _ = require('underscore') ;
  
 var env = process.env.NODE_ENV;
@@ -22,17 +22,51 @@ var warning = 'Warning: drachtio-session() MemoryStore is not\n'
   + 'memory, and will not scale past a single process.';
 
 
+// thanks to http://me.dt.in.th/page/JavaScript-override/
+function override(object, methodName, callback) {
+  object[methodName] = callback(object[methodName])
+}
+
+function before(extraBehavior) {
+  return function(original) {
+    return function() {
+      extraBehavior.apply(this, arguments)
+      return original.apply(this, arguments)
+    }
+  }
+}
+
+
 function session(options){
     var options = options || {}
     , store = options.store || new MemoryStore
+    , app = options.app
     , resolvers = _.uniq( (options.resolvers || []).concat( Date ) )
     , storeReady = true;
+
+    if( !app.uac ) throw new Error('session: opts.app is required') ;
 
     MKSession.addResolvers( (options.resolvers || []).concat( Date ) ) ;
 
     // notify user that this store is not
     // meant for a production environment
     if ('production' == env && store instanceof MemoryStore) console.warn(warning);
+
+    // monkey-patch Request.send to use existing session (if provided) when sending sip request
+    var Request = app.uac.Request
+
+    var originalSend = Request.prototype.send ;
+    Request.prototype.send = function(opts, callbacks) {
+        if( this.session && this.session instanceof MKSession.SessionProto ) {
+            Object.defineProperty(this,'mks', {value: this.session.mks}) ;
+        }
+
+        override( this.dispatchRequest, 'prepareRequest', before(function(uac, req){
+            uac.mks && Object.defineProperty(req, 'mks', {value: uac.mks}) ;
+        })) ;
+
+        originalSend.apply( this, arguments ) ;
+    }
 
     function attachSession( req, mks ) {
         Object.defineProperty( req, 'mks', {value:mks}) ;
@@ -99,7 +133,18 @@ function session(options){
                 else send( code, status, opts ) ;
             }                                
         }
-
+        function proxyAck() {
+            var ack = res.ack.bind( res ) ;
+            res.ack = function(opts) {
+                res.ack = ack ;
+                if( req.mks ) {
+                    req.mks.save( function() {
+                        ack(opts);                   
+                    }) ;          
+                }
+                else ack(opts) ;
+            }
+        }
 
         // expose store
         req.sessionStore = store;
@@ -119,13 +164,6 @@ function session(options){
                 proxySend(true) ;
              }
         }
-        else {
-            // req was sent by us, we are processing the response 
-            if( req.method === 'BYE') {
-                req.mks.del( req.sessionID, function() { next(); }) ;
-                return ;
-            }
-        }
 
         /* load session from storage and attach to request */
         debug('fetching session for req.sessionID %s', req.sessionID);
@@ -135,7 +173,7 @@ function session(options){
                 debug('error: ', err);
                 if ('ENOENT' == err.code) {
                     generate();
-                    proxySend() ;
+                    if( req.source === 'network' ) proxySend() ;
                     next();
                 } else {
                     next(err);
@@ -144,13 +182,20 @@ function session(options){
             } else if (!mks) {
                 debug('no session found');
                 generate();
-                proxySend() ;
+                if( req.source === 'network' ) proxySend() ;
+                else if( req.isNewInvite ) proxyAck() ;
                 next();
                 // populate req.session
             } else {
                 debug('loaded session from storage');
                 attachSession( req, mks) ;
-                proxySend() ;
+                if( req.source === 'network' ) proxySend() ;
+                else if( req.isNewInvite ) proxyAck() ;
+                else if( req.method === 'BYE') {
+                    debug('deleting session id upon receiving response to our BYE for call-id: %s', req.sessionID) ;
+                    req.mks.del( req.sessionID, function() { next(); }) ;
+                    return ;
+                }
                 next();
             }
         }) ;

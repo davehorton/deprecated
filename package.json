@@ -1,7 +1,7 @@
 {
   "name": "drachtio-redis",
   "description": "Redis session store for use with drachtio",
-  "version": "1.0.3",
+  "version": "0.0.1",
   "author": {
     "name": "Dave Horton",
     "email": "dave@dchorton.com"

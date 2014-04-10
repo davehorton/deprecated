@@ -1,0 +1,29 @@
+{
+  "name": "drachtio-dialog"
+  ,"description": "SIP dialog control framework built on top of drachtio"
+  ,"version": "0.0.1"
+  ,"author": "Dave Horton <dave@dchorton.com>"
+  ,"main": "./index.js"
+  ,"dependencies": { 
+    "debug": "*" 
+    ,"utils-merge":"*"
+    ,"underscore": "*"
+    ,"drachtio": "*"
+  }
+  ,"devDependencies": {
+    "jsdoc": ">=3.3.0-*"
+    ,"drachtio-redis": "*"
+    ,"minimist": ">=0.0.8"
+    ,"mocha": "~1.15.1"
+    ,"should": "~2.1.1"
+ },
+  "scripts": {
+    "test": "make test"
+  }, 
+  "engines": { "node": ">=0.10" }
+  ,"license": "MIT"
+  ,"repository": {
+    "type" :"git"
+    ,"url": "https://github.com/davehorton/drachtio-dialog"
+  }
+}

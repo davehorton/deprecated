@@ -1,21 +1,24 @@
 var drachtio = require('drachtio')
 ,session = require('../..')
 ,RedisStore = require('drachtio-redis')() 
+,sessionStore = new RedisStore({host: 'localhost'}) 
+,config = require('../fixtures/config') 
 ,assert = require('assert')
-,config = require('../fixtures/config') ;
+,debug = require('debug')('simple-uac');
 
 var app = module.exports = drachtio() ;
 
 app.connect( config.connect_opts ) ;
 
-var sessionStore = new RedisStore({host: 'localhost'}) ;
 app.use(session({store: sessionStore, app:app})) ;
 
-
-app.invite(function(req, res){
-    req.session.user='jack jones' ;
-	res.send( 200,{
+app.on('connect', function() {
+	app.siprequest( config.remote_uri, {
 		body: config.sdp
+	}, function(err, req, res){
+		assert(!err) ;
+		if( res.statusCode === 200 ) req.session.user = 'jack jones' ;
+		if( res.statusCode >= 200 ) res.ack() ;
 	}) ;
 }) ;
 
@@ -24,8 +27,11 @@ app.bye(function(req, res){
 
     assert(req.session.user === 'jack jones') ;
 
-    //for test harness in test/acceptance/simple-uas.js
+    //for test harness in test/acceptance/simple-uac.js
     app.emit('session', req.session) ;
  }) ;
+
+
+
 
 

@@ -22,6 +22,19 @@ var warning = 'Warning: drachtio-session() MemoryStore is not\n'
   + 'memory, and will not scale past a single process.';
 
 
+function attachSession( req, mks ) {
+    Object.defineProperty( req, 'mks', {value:mks}) ;
+    Object.defineProperty( req, 'session', {
+        get: function() {
+            return this.mks.session ;
+        }
+        ,set: function(val) {
+            this.mks.session = val ;
+        }
+    }) ;
+}
+
+
 // thanks to http://me.dt.in.th/page/JavaScript-override/
 function override(object, methodName, callback) {
   object[methodName] = callback(object[methodName])
@@ -36,6 +49,47 @@ function before(extraBehavior) {
   }
 }
 
+// monkey-patch Request#send to use existing session (if provided) when sending sip request
+var Request = require('drachtio').Request ;
+
+var originalSend = Request.prototype.send ;
+Request.prototype.send = function(opts, callbacks) {
+    if( this.method === 'INVITE' && this.session && this.session instanceof MKSession.SessionProto ) {
+        debug('defining mks on outgoing request, uuid: %s', this.session.mks.uuid) ;
+        Object.defineProperty(this,'mks', {value: this.session.mks}) ;
+        delete this['session'] ;
+
+        var originalPrepare = this.dispatchRequest.prepareRequest ;
+        this.dispatchRequest.prepareRequest = function( uac, req ) {
+            debug('overriding dispatchRequest#prepareRequest, have mks? ', uac.mks) ;
+            if( uac.mks ) {
+                debug('attaching session, existing session: ', req.session) ;
+                delete req['session'] ;
+                attachSession( req, uac.mks)
+            }   
+            originalPrepare.apply( this, arguments) ;     
+        }
+
+
+
+    }
+
+    /*
+    override( this.dispatchRequest, 'prepareRequest', before(function(uac, req){
+        debug('overriding dispatchRequest#prepareRequest, have mks? ', uac.mks) ;
+        if( uac.mks ) {
+            debugger ;
+            debug('attaching session, existing session: ', req.session) ;
+            delete req['session'] ;
+            //Object.defineProperty( req, 'mks', {value:uac.mks}) ;
+            attachSession( req, uac.mks)
+
+        }
+    })) ;
+*/
+
+    originalSend.apply( this, arguments ) ;
+}
 
 function session(options){
     var options = options || {}
@@ -44,41 +98,11 @@ function session(options){
     , resolvers = _.uniq( (options.resolvers || []).concat( Date ) )
     , storeReady = true;
 
-    if( !app.uac ) throw new Error('session: opts.app is required') ;
-
     MKSession.addResolvers( (options.resolvers || []).concat( Date ) ) ;
 
     // notify user that this store is not
     // meant for a production environment
     if ('production' == env && store instanceof MemoryStore) console.warn(warning);
-
-    // monkey-patch Request.send to use existing session (if provided) when sending sip request
-    var Request = app.uac.Request
-
-    var originalSend = Request.prototype.send ;
-    Request.prototype.send = function(opts, callbacks) {
-        if( this.session && this.session instanceof MKSession.SessionProto ) {
-            Object.defineProperty(this,'mks', {value: this.session.mks}) ;
-        }
-
-        override( this.dispatchRequest, 'prepareRequest', before(function(uac, req){
-            uac.mks && Object.defineProperty(req, 'mks', {value: uac.mks}) ;
-        })) ;
-
-        originalSend.apply( this, arguments ) ;
-    }
-
-    function attachSession( req, mks ) {
-        Object.defineProperty( req, 'mks', {value:mks}) ;
-        Object.defineProperty( req, 'session', {
-            get: function() {
-                return this.mks.session ;
-            }
-            ,set: function(val) {
-                this.mks.session = val ;
-            }
-        }) ;
-    }
 
     // generates the new session
     store.generate = function(req){

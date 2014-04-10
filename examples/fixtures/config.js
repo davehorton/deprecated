@@ -3,6 +3,7 @@ module.exports =  {
 		host: 'localhost'
 		,port: 8023
 		,secret: 'cymru'
+                ,appName: 'remote'
 	} 
 	,sdp: 'v=0\n' +
         'o=- 1385064302543926 1 IN IP4 127.0.0.1\n' + 
@@ -18,4 +19,6 @@ module.exports =  {
         'a=rtpmap:101 telephone-event/8000\n' + 
         'a=fmtp:101 0-15\n' + 
         'a=sendrecv\n' 
+        ,remote_uri : 'sip:1234@127.0.0.1'
+       ,remote_uri2 : 'sip:1234@127.0.0.1:5062'
 }

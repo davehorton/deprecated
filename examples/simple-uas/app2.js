@@ -23,7 +23,8 @@ app.invite(function(req, res){
 }) ;
 
 app.on('sipdialog:create', function(e){
-	debug('dialog created') ;
+	var dialog = e.target ;
+	debug('dialog created: ', dialog) ;
 	setTimeout(function() {
 		e.target.terminate() ;
 	}, 50) ;

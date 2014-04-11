@@ -15,6 +15,15 @@ var SipDialog = require('./lib/dialog')
 
 const prefix = 'dlg:' ;
 
+function attachAppToDialogs( app, sess ) {
+    for( var key in sess ) {
+        if( sess[key] instanceof SipDialog ) {
+            Object.defineProperty( sess[key] , 'app', {value: app}) ;
+        }
+        else if( typeof( sess[key] ) === 'object' ) attachAppToDialogs( app, sess[key] ) ;
+    }
+}
+
 module.exports = function dialog() {
 
     var MultikeySession = require('drachtio-session').Session ;
@@ -27,6 +36,27 @@ module.exports = function dialog() {
         /* must be called after drachtio.session */
         if( !req.sessionStore && req.source === 'network') return next('drachtio.dialog() requires drachtio.session() middleware to be installed prior') ;
        
+        if( req.isNewInvite() && req.source === 'application' && res.statusCode === 200 ) {
+            var ack = _.bind(res.ack, res) ;
+            res.ack = function( opts, callback ) {
+                res.ack = ack ;
+                var dialog = new SipDialog( req ) ;
+                req.mks.set( dialog ) ;
+                req.mks.save() ;
+               
+                //debug('response message is: ', res)
+                dialog.setConnectTime( res.time ); 
+                dialog.state = SipDialog.STABLE ;
+                dialog.local.tag = req.get('from').tag ;
+                debug('proxying ACK for uac INVITE which got 200 OK, dialog is ', dialog)
+                var e = new Event( dialog, req.mks ) ;
+                e.req = req ;
+                e.res = res ;
+                e.emit( req.app, 'sipdialog:create') ;
+
+                return ack( opts, callback ) ;               
+            }
+        }
         if( req.isNewInvite() && req.source === 'network') {
             /* proxy res.send to create dialog when sending 200 OK to INVITE */
             var send = _.bind(res.send, res) ;
@@ -75,6 +105,7 @@ module.exports = function dialog() {
         }
         debug('loaded dialog ', dialog)
         dialog.attachSession( req.mks ) ;
+        attachAppToDialogs( req.app, dialog.session ) ;
  
         /* we have a dialog, see if any of these messages represent dialog events we should emit */
         Object.defineProperty( dialog, 'app', {value: req.app}) ;

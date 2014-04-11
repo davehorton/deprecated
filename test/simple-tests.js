@@ -73,7 +73,7 @@ describe('dialog basics', function() {
             }, 25);
          }) ;               
     }) ;
-    it.only('b2bua / far end release', function(done) {
+    it('b2bua / far end release', function(done) {
 
         appRemote = require('../examples/basic-tests/app3') ;
         appRemote.on('connect', function() {

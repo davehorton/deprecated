@@ -10,7 +10,7 @@ describe('dialog basics', function() {
 
     it('uas / far end release', function(done) {
 
-        appRemote = require('../examples/simple-uas/app') ;
+        appRemote = require('../examples/basic-tests/app') ;
         appRemote.on('connect', function() {
             appLocal = require('drachtio')() ;
             appLocal.connect(config.connect_opts, function(err){
@@ -45,7 +45,7 @@ describe('dialog basics', function() {
 
     it('uas / near end release', function(done) {
 
-        appRemote = require('../examples/simple-uas/app2') ;
+        appRemote = require('../examples/basic-tests/app2') ;
         appRemote.on('connect', function() {
             appLocal = require('drachtio')() ;
             appLocal.connect(config.connect_opts, function(err){
@@ -75,7 +75,7 @@ describe('dialog basics', function() {
     }) ;
     it.only('b2bua / far end release', function(done) {
 
-        appRemote = require('../examples/simple-uas/app3') ;
+        appRemote = require('../examples/basic-tests/app3') ;
         appRemote.on('connect', function() {
             debug('appRemote connected')
             appLocal = require('drachtio')() ;

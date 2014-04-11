@@ -6,6 +6,7 @@
   ,"main": "./index.js"
   ,"dependencies": { 
     "debug": "*" 
+    ,"dractio-session": "*"
     ,"utils-merge":"*"
     ,"underscore": "*"
     ,"drachtio": "*"

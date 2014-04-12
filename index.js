@@ -3,6 +3,7 @@ var MKSession = require('./lib/multikeysession')
   , debug = require('debug')('drachtio:session')
   , MemoryStore = require('./lib/memory')
   , Store = require('./lib/store') 
+  , Event = require('./lib/event')
   , _ = require('underscore') ;
  
 var env = process.env.NODE_ENV;
@@ -12,6 +13,7 @@ exports = module.exports = session ;
 exports.Store = Store;
 exports.Session = MKSession;
 exports.MemoryStore = MemoryStore;
+exports.Event = Event ;
 
 /**
  * Warning message for `MemoryStore` usage in production.

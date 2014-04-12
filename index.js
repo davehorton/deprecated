@@ -8,7 +8,7 @@
  */
 
 var SipDialog = require('./lib/dialog')
-,Event = require('./lib/event')
+,Event = require('drachtio-session').Event
 ,_ = require('underscore')
 ,Resource = require('./lib/resource')
 ,debug = require('debug')('drachtio:dialog') ;

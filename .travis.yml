@@ -1,0 +1,7 @@
+language: node_js
+node_js:
+  - "0.10"
+
+before_install: "sudo bash ci/before_install"
+
+after_script: "sudo bash ci/after_install"

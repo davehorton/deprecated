@@ -1,0 +1,3 @@
+sudo cat /var/log/drachtio.log
+sudo cat /var/log/drachtio2.log
+sudo cat /var/log/drachtio3.log

@@ -1,9 +1,9 @@
 module.exports =  {
 	connect_opts: {
-		host: 'localhost'
+		host: '127.0.0.1'
 		,port: 8023
 		,secret: 'cymru'
-                ,appName: 'remote'
+        ,appName: 'remote'
 	} 
 	,sdp: 'v=0\n' +
         'o=- 1385064302543926 1 IN IP4 127.0.0.1\n' + 

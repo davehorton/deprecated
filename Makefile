@@ -7,4 +7,7 @@ check: test
 test: 
 	@NODE_ENV=test ./node_modules/.bin/mocha $(MOCHA_OPTS) --reporter $(REPORTER) ./test
 
-.PHONY: test 
+debug-test: 
+	@NODE_ENV=test, DEBUG=* ./node_modules/.bin/mocha --reporter $(REPORTER) ./test
+
+.PHONY: test debug-test

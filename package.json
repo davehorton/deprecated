@@ -1,7 +1,7 @@
 {
   "name": "drachtio-dialog"
   ,"description": "SIP dialog control framework built on top of drachtio"
-  ,"version": "0.0.2"
+  ,"version": "0.0.3"
   ,"author": "Dave Horton <dave@dchorton.com>"
   ,"main": "./index.js"
   ,"dependencies": { 

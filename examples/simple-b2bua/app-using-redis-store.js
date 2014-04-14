@@ -1,5 +1,7 @@
 var drachtio = require('drachtio')
 ,session = require('../..')
+,RedisStore = require('drachtio-redis')() 
+,sessionStore = new RedisStore({host: 'localhost'}) 
 ,config = require('../fixtures/config') 
 ,assert = require('assert')
 ,debug = require('debug')('simple-b2bua');
@@ -8,7 +10,7 @@ var app = module.exports = drachtio() ;
 
 app.connect( config.connect_opts ) ;
 
-app.use(session({app:app})) ;
+app.use(session({store: sessionStore, app:app})) ;
 
 app.invite( function(req, res) {
 	req.session.uasCallId = req.get('call-id') ;

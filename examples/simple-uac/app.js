@@ -1,7 +1,5 @@
 var drachtio = require('drachtio')
 ,session = require('../..')
-,RedisStore = require('drachtio-redis')() 
-,sessionStore = new RedisStore({host: 'localhost'}) 
 ,config = require('../fixtures/config') 
 ,assert = require('assert')
 ,debug = require('debug')('simple-uac');
@@ -10,7 +8,7 @@ var app = module.exports = drachtio() ;
 
 app.connect( config.connect_opts ) ;
 
-app.use(session({store: sessionStore, app:app})) ;
+app.use(session({app:app})) ;
 
 app.on('connect', function() {
 	app.siprequest( config.remote_uri, {

@@ -9,7 +9,8 @@ var app = module.exports = drachtio() ;
 app.connect( config.connect_opts ) ;
 
 var sessionStore = new RedisStore({host: 'localhost'}) ;
-app.use(session({store: sessionStore, app:app})) ;
+//app.use(session({store: sessionStore, app:app})) ;
+app.use(session({app:app})) ;
 
 
 app.invite(function(req, res){

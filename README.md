@@ -90,3 +90,4 @@ An event object containing the following properties is passed to the application
 - `target` - the SipDialog this event references
 - `session` - the session object associated with the dialog
 - `reason` - a specific reason for the event, if appropriate (e.g., the `sipdialog:terminate` event will have a reason property indicating the reason the dialog was terminated.
+

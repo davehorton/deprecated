@@ -1,12 +1,12 @@
 {
   "name": "drachtio-session"
   ,"description": "session storage for drachtio applications"
-  ,"version": "0.0.1"
+  ,"version": "0.0.2"
   ,"author": "Dave Horton <dave@dchorton.com>"
   ,"main": "./index.js"
   ,"dependencies": { 
     "utils-merge": "1.0.0"
-    ,"drachtio": "*"
+    ,"drachtio": ">=0.0.5"
     ,"cookie": "*"
     ,"debug": "*" 
     ,"underscore": "*"

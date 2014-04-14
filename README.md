@@ -28,7 +28,7 @@ app.bye(function(req, res){
  }) ;
 ```
 
-## Establishing a session store
+### Establishing a session store
 An application must establish a session store by using the drachtio-session middleware, as shown above.  By doing so, each SIP dialog
 that gets created will have an associated session, into which the application can save variables. A session will get created for 
 each incoming INVITE that establishes a SIP dialog.  This session -- and any variables stored therein -- will then be available on any
@@ -37,7 +37,7 @@ subsequent requests received within that dialog.
 By default, each outgoing new INVITE that is sent by an application will also establish a new session; however, as we shall see in the 
 next section, this can be overridden to enable multiple SIP dialogs to share a single unified session object.
 
-## Using an existing session when sending a new SIP INVITE
+### Using an existing session when sending a new SIP INVITE
 
 Many sip applications act as a back-to-back user agent; receiving an incoming SIP INVITE and then generating a new outbound SIP INVITE, and managing two different SIP dialogs.  Such a scenario calls for a unified session object that can be accessible from a request or an event on either of the SIP dialogs.  To enable using an existing session when creating a new SIP INVITE, simply provide a session property on the `opts` property of the `app.siprequest` method.
 
@@ -63,7 +63,7 @@ app.invite( function(req, res) {
 	}) ;
 }) ;
 
-// with one session object, we can get the call-id from the opposite call
+// regardless of which sip dialog the request is for, we get the same session object
 app.bye(function(req, res){
     res.send(200) ;
 

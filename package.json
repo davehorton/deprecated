@@ -6,10 +6,10 @@
   ,"main": "./index.js"
   ,"dependencies": { 
     "debug": "*" 
-    ,"dractio-session": "*"
+    ,"dractio-session": ">=0.0.3"
     ,"utils-merge":"*"
     ,"underscore": "*"
-    ,"drachtio": "*"
+    ,"drachtio": ">=0.0.5"
   }
   ,"devDependencies": {
     "jsdoc": ">=3.3.0-*"

@@ -11,8 +11,7 @@
 dracht.io is an [express](http://expressjs.com/)-inspired application framework that designed to let node.js developers easily integrate [SIP](http://www.ietf.org/rfc/rfc3261.txt) call and media processing features into their applications using familiar middleware patterns. 
 
 ```js
-var drachtio = require('drachtio') ;
-var app = drachtio() ;
+var app = require('drachtio')() ;
 
 app.connect({host:'localhost', port: 8022, secret: 'cymru', appName:'my simple app'}) ;
 
@@ -37,8 +36,7 @@ The dracht.io architecture currently consists of the following components:
 ### Creating an application
 The first thing an application must do is to require the drachtio library and invoke the returned function to create an application.  The application instance that is created is an EventEmitter.
 ```js
-var drachtio = require('drachtio')
-,app = drachtio() ;
+var app = require('drachtio')() ;
 ```
 ### Connecting to the server
 The next thing an application must do is to call the 'connect' method in order to connect to the drachtio-server that will be providing the SIP endpoint. By default, 
@@ -93,7 +91,7 @@ app.invite( function( req, res ) {
 SIP requests can be sent using the app.siprequest[verb] methods:
 
 ```js
-/* send one OPTIONS ping and then disconnect */
+/* send one OPTIONS ping after connecting to the server, and then exit */
 app.once('connect', function() {
     app.siprequest.options('sip:1234@10.168.12.139', function( err, req, res ) {
         if( err ) console.error( err ) ;
@@ -122,8 +120,7 @@ Sip INVITE messages have the additional feature of being concluded with an sip A
 However, in all cases, the application must call the `res.ack` method on the Response object because some internal event processing deoends on it.  
 
 ```js
-var drachtio = require('drachtio') ;
-var app = drachtio() ;
+var app = require('drachtio')() ;
 
 app.connect({host:'localhost', port: 8022, secret: 'cymru'}) ;
 

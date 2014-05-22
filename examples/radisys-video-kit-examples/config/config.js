@@ -2,7 +2,7 @@
 module.exports = {
 
 	drachtio: {
-		host: '10.228.9.22'
+		host: 'localhost'
 		,port: 8022
 		,secret: 'cymru'
 	}

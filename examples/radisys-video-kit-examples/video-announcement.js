@@ -2,18 +2,27 @@ var msml = require('../..')
 ,drachtio = require('drachtio')
 ,app = drachtio()
 ,msmlApp = msml(app)
+,drachtioDialog = require('drachtio-dialog')
+,session = require('drachtio-session')
 ,RedisStore = require('drachtio-redis')(drachtio) 
 ,store = new RedisStore({host: 'localhost', prefix:''})
-,config = require('./config/config')
-,debug = require('debug')('drachtio:msml-basic-play') ;
+,argv = require('minimist')(process.argv.slice(2))
+,host = argv.host
+,port = argv.port || 5060
+,secret = argv.secret
+,swms = argv.swms
+,debug = require('debug')('drachtio:video-announcement') ;
 
-app.use( drachtio.session({store: store}) ) ;
-app.use( drachtio.dialog() ) ;
+if( !host || !port || !secret || !swms ) throw new Error('some or all required command line arguments are missing: --host --port --secret --swms') ;
+
+debug('connecting to drachtio-server at address %s:%s using secret: %s, utlizing swms at address %s', host, port, secret, swms) ;
+
+app.use( session({store: store, app:app}) ) ;
+app.use( drachtioDialog() ) ;
 app.use( msml.msmlparser() ) ;
 app.use( 'info', msml.router ) ;
-app.use( app.router ) ;
 
-app.connect( _.extend( config.drachtio, {appName: 'video-announcement'} ) ) ;
+app.connect({host: host, port: port, secret: secret}) ;
 
 /* receive invites, connect call to the media server, and begin playing announcement */
 app.invite(function(req, res) {	
@@ -40,7 +49,7 @@ app.invite(function(req, res) {
 
 	var anncFile = '/provisioned/' + ( (3 == codec || 5 == codec) ? 'H263/' : 'H264/') + 'videoAnnc' + clip + ((3 == codec || 4 == codec) ? '.mov' : '.3gp') ;
 
-	msmlApp.makeConnection('209.251.49.158', {
+	msmlApp.makeConnection(swms, {
 		remote: {
 			sdp: req.body
 			,'content-type': req.get('content-type')

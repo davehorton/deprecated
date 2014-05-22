@@ -7,8 +7,10 @@ var Msml = require('./lib/msml')
 ,Connection = require('./lib/connection')
 ,ControlChannel = require('./lib/controlchannel')
 ,Dialog = require('./lib/dialog')
+,drachtioSession = require('drachtio-session')
 ,debug = require('debug')('msml') ;
 
+drachtioSession.addClass([Connection,ControlChannel,Dialog]) ;
 
 exports = module.exports = createMsml;
 
@@ -22,10 +24,6 @@ function createMsml( app ) {
 	createMsml.instance = msml ;
 	return msml;
 };
-
-/** add the classes we want to be able to rehydrate from storage */
-var MultiKeySession = require('drachtio').MultiKeySession ;
-MultiKeySession.addResolvers([Connection,ControlChannel,Dialog]) ;
 
 var router = new Router(createMsml);
 

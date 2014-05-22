@@ -39,15 +39,12 @@ Request.prototype.send = function(opts, callbacks) {
 
         var originalPrepare = this.dispatchRequest.prepareRequest ;
         this.dispatchRequest.prepareRequest = function( uac, req ) {
-            debug('overriding dispatchRequest#prepareRequest, have mks? ', uac.mks) ;
             if( uac.mks ) {
-                debug('attaching session, existing session: ', req.session) ;
                 delete req['session'] ;
                 uac.mks.attachTo( req )  ;
             }   
             originalPrepare.apply( this, arguments) ;     
         }
-
     }
 
     originalSend.apply( this, arguments ) ;
@@ -70,7 +67,7 @@ function session(options){
     store.generate = function(req){
         if( req.mks ) return  ;
         var mks = req.mks || new MKSession({store:store}) ;
-        mks.set( req.sessionID ) ;
+        mks.set( req.id ) ;
         mks.attachTo( req ) ;
     };
 

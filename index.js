@@ -17,6 +17,10 @@ drachtioSession.addClass(SipDialog) ;
 
 const prefix = 'dlg:' ;
 
+exports = module.exports = dialog ;
+
+dialog.SipDialog = SipDialog ;
+
 function attachAppToDialogs( app, sess ) {
     for( var key in sess ) {
         if( sess[key] instanceof SipDialog ) {
@@ -26,7 +30,7 @@ function attachAppToDialogs( app, sess ) {
     }
 }
 
-module.exports = function dialog() {
+function dialog() {
  
     return function(req, res, next) {
 
@@ -40,12 +44,14 @@ module.exports = function dialog() {
             res.ack = function( opts, callback ) {
                 res.ack = ack ;
                 var dialog = new SipDialog( req ) ;
-                req.mks.set( dialog.id, dialog ) ;
-                req.mks.save() ;
                
                 dialog.setConnectTime( res.time ); 
                 dialog.state = SipDialog.STABLE ;
                 dialog.local.tag = req.get('from').tag ;
+ 
+                req.mks.set( dialog.id, dialog ) ;
+                req.mks.save() ;
+ 
                 var e = new Event({
                     target: dialog 
                     ,mks: req.mks

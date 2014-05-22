@@ -43,11 +43,9 @@ module.exports = function dialog() {
                 req.mks.set( dialog.id, dialog ) ;
                 req.mks.save() ;
                
-                //debug('response message is: ', res)
                 dialog.setConnectTime( res.time ); 
                 dialog.state = SipDialog.STABLE ;
                 dialog.local.tag = req.get('from').tag ;
-                debug('proxying ACK for uac INVITE which got 200 OK, dialog is ', dialog)
                 var e = new Event({
                     target: dialog 
                     ,mks: req.mks
@@ -99,6 +97,10 @@ module.exports = function dialog() {
         }
 
         /* retrieve dialog */
+        if( !req.dialogId ) {
+            debug('request does not have a dialog id, next..') ;
+            return next() ;
+        }
         var dialog = req.mks.get( req.dialogId ) ;
         if( !dialog ) {
             debug('dialog not found for id %s', req.dialogId);

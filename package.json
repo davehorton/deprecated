@@ -18,7 +18,7 @@
     ,"minimist": ">=0.1.0"
   },
   "devDependencies": {
-    "drachtio-redis": ">=1.0.3"
+    "drachtio-redis": "*"
     ,"jsdoc": ">=3.3.0-*"
   },
   "engines": { "node": "*" }

@@ -150,8 +150,8 @@ function session(options){
         }
 
         /* load session from storage and attach to request */
-        debug('fetching session for req.sessionID %s', req.sessionID);
-        MKSession.loadFromStorage({store: store}, req.sessionID, function(err, mks) {
+        debug('fetching session for req.sessionID %s', req.id);
+        MKSession.loadFromStorage({store: store}, req.id, function(err, mks) {
             // error handling
             if (err) {
                 debug('error: ', err);

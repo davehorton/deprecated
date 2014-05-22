@@ -10,4 +10,4 @@ test:
 debug-test: 
 	@NODE_ENV=test, DEBUG=* ./node_modules/.bin/mocha --reporter $(REPORTER) ./test
 
-.PHONY: test 
+.PHONY: test debug-test

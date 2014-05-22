@@ -15,6 +15,10 @@ exports.Session = MKSession;
 exports.MemoryStore = MemoryStore;
 exports.Event = Event ;
 
+exports.addClass = function( klass ) {
+    MKSession.resolvers.push( klass ) ;
+}
+
 /**
  * Warning message for `MemoryStore` usage in production.
  */
@@ -22,34 +26,6 @@ exports.Event = Event ;
 var warning = 'Warning: drachtio-session() MemoryStore is not\n'
   + 'designed for a production environment, as it will leak\n'
   + 'memory, and will not scale past a single process.';
-
-
-function attachSession( req, mks ) {
-    Object.defineProperty( req, 'mks', {value:mks}) ;
-    Object.defineProperty( req, 'session', {
-        get: function() {
-            return this.mks.session ;
-        }
-        ,set: function(val) {
-            this.mks.session = val ;
-        }
-    }) ;
-}
-
-
-// thanks to http://me.dt.in.th/page/JavaScript-override/
-function override(object, methodName, callback) {
-  object[methodName] = callback(object[methodName])
-}
-
-function before(extraBehavior) {
-  return function(original) {
-    return function() {
-      extraBehavior.apply(this, arguments)
-      return original.apply(this, arguments)
-    }
-  }
-}
 
 // monkey-patch Request#send to use existing session (if provided) when sending sip request
 var Request = require('drachtio').Request ;
@@ -67,28 +43,12 @@ Request.prototype.send = function(opts, callbacks) {
             if( uac.mks ) {
                 debug('attaching session, existing session: ', req.session) ;
                 delete req['session'] ;
-                attachSession( req, uac.mks)
+                uac.mks.attachTo( req )  ;
             }   
             originalPrepare.apply( this, arguments) ;     
         }
 
-
-
     }
-
-    /*
-    override( this.dispatchRequest, 'prepareRequest', before(function(uac, req){
-        debug('overriding dispatchRequest#prepareRequest, have mks? ', uac.mks) ;
-        if( uac.mks ) {
-            debugger ;
-            debug('attaching session, existing session: ', req.session) ;
-            delete req['session'] ;
-            //Object.defineProperty( req, 'mks', {value:uac.mks}) ;
-            attachSession( req, uac.mks)
-
-        }
-    })) ;
-*/
 
     originalSend.apply( this, arguments ) ;
 }
@@ -111,7 +71,7 @@ function session(options){
         if( req.mks ) return  ;
         var mks = req.mks || new MKSession({store:store}) ;
         mks.set( req.sessionID ) ;
-        attachSession( req, mks ) ;
+        mks.attachTo( req ) ;
     };
 
     store.on('disconnect', function(){ storeReady = false; });
@@ -139,6 +99,7 @@ function session(options){
             var send = res.send.bind( res );
 
             res.send = function( code, status, opts ) {
+                debug('sending response')
                 if( req.canceled ) {
                     res.send = send ;
                     debug('session#proxySend: not sending because request has been canceled') ;
@@ -214,7 +175,7 @@ function session(options){
                 // populate req.session
             } else {
                 debug('loaded session from storage');
-                attachSession( req, mks) ;
+                mks.attachTo( req ) ;
                 if( req.source === 'network' ) proxySend() ;
                 else if( req.isNewInvite ) proxyAck() ;
                 else if( req.method === 'BYE') {

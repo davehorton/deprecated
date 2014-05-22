@@ -1,6 +1,5 @@
 var drachtio = require('drachtio')
 ,session = require('../..')
-,RedisStore = require('drachtio-redis')() 
 ,assert = require('assert')
 ,config = require('../fixtures/config') ;
 
@@ -8,13 +7,12 @@ var app = module.exports = drachtio() ;
 
 app.connect( config.connect_opts ) ;
 
-var sessionStore = new RedisStore({host: 'localhost'}) ;
-//app.use(session({store: sessionStore, app:app})) ;
 app.use(session({app:app})) ;
 
-
 app.invite(function(req, res){
+	debug('setting session data')
     req.session.user='jack jones' ;
+    debug('sending 200 ok')
 	res.send( 200,{
 		body: config.sdp
 	}) ;

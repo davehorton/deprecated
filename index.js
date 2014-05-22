@@ -8,10 +8,12 @@
  */
 
 var SipDialog = require('./lib/dialog')
-,Event = require('drachtio-session').Event
+,drachtioSession = require('drachtio-session')
+,Event = drachtioSession.Event
 ,_ = require('underscore')
-,Resource = require('./lib/resource')
 ,debug = require('debug')('drachtio:dialog') ;
+
+drachtioSession.addClass(SipDialog) ;
 
 const prefix = 'dlg:' ;
 
@@ -25,9 +27,6 @@ function attachAppToDialogs( app, sess ) {
 }
 
 module.exports = function dialog() {
-
-    var MultikeySession = require('drachtio-session').Session ;
-    MultikeySession.resolvers.push(SipDialog) ;
  
     return function(req, res, next) {
 
@@ -41,7 +40,7 @@ module.exports = function dialog() {
             res.ack = function( opts, callback ) {
                 res.ack = ack ;
                 var dialog = new SipDialog( req ) ;
-                req.mks.set( dialog ) ;
+                req.mks.set( dialog.id, dialog ) ;
                 req.mks.save() ;
                
                 //debug('response message is: ', res)
@@ -49,9 +48,12 @@ module.exports = function dialog() {
                 dialog.state = SipDialog.STABLE ;
                 dialog.local.tag = req.get('from').tag ;
                 debug('proxying ACK for uac INVITE which got 200 OK, dialog is ', dialog)
-                var e = new Event( dialog, req.mks ) ;
-                e.req = req ;
-                e.res = res ;
+                var e = new Event({
+                    target: dialog 
+                    ,mks: req.mks
+                    ,req: req
+                    ,res: res
+                }) ;
                 e.emit( req.app, 'sipdialog:create') ;
 
                 return ack( opts, callback ) ;               
@@ -81,7 +83,7 @@ module.exports = function dialog() {
                     var dialog = new SipDialog( req, res ) ;
 
                     /* set dialog id as a key to the session */
-                    req.mks.set( dialog ) ;
+                    req.mks.set( dialog.dialogId, dialog ) ;
                     req.mks.save() ;
 
                     var msg = opts || status || {} ;
@@ -97,14 +99,13 @@ module.exports = function dialog() {
         }
 
         /* retrieve dialog */
-        var sid = SipDialog.prefix + req.dialogId ;
-        var dialog = req.mks.get( sid ) ;
+        var dialog = req.mks.get( req.dialogId ) ;
         if( !dialog ) {
-            debug('dialog not found for id %s', sid);
+            debug('dialog not found for id %s', req.dialogId);
             return next() ;
         }
         debug('loaded dialog ', dialog)
-        dialog.attachSession( req.mks ) ;
+        req.mks.attachTo( dialog );
         attachAppToDialogs( req.app, dialog.session ) ;
  
         /* we have a dialog, see if any of these messages represent dialog events we should emit */
@@ -119,9 +120,12 @@ module.exports = function dialog() {
                 dialog.setConnectTime( req.msg.time ); 
                 dialog.state = SipDialog.STABLE ;
                 dialog.local.tag = req.get('to').tag ;
-                var e = new Event( dialog, req.mks ) ;
-                e.req = req ;
-                e.res = res ;
+                var e = new Event({
+                    target: dialog
+                    ,mks: req.mks
+                    ,req: req
+                    ,res: res
+                }) ;
                 e.emit( req.app, 'sipdialog:create') ;
              }
             break ;
@@ -131,9 +135,12 @@ module.exports = function dialog() {
                 dialog.setConnectTime( req.msg.time ); 
                 dialog.state = SipDialog.EARLY ;
                 dialog.local.tag = req.get('to').tag ;
-                var e = new Event( dialog, req.mks ) ;
-                e.req = req ;
-                e.res = res ;
+                var e = new Event({
+                    target: dialog
+                    ,mks: req.mks
+                    ,req: req
+                    ,res: res
+                }) ;
                 e.emit( req.app, 'sipdialog:create-early') ;
             }
             break ;
@@ -141,9 +148,13 @@ module.exports = function dialog() {
         case 'BYE':
             dialog.setEndTime( req.msg.time ); 
             dialog.state = SipDialog.TERMINATED ;
-            var e = new Event( dialog, req.mks, 'network' === req.source ? 'normal far end release' : 'normal near end release' ) ;
-            e.req = req ;
-            e.res = res ;
+            var e = new Event({
+                target: dialog
+                ,mks: req.mks
+                ,reason: 'network' === req.source ? 'normal far end release' : 'normal near end release'
+                ,req: req
+                ,res: res
+            }) ;
             e.emit( req.app, 'sipdialog:terminate') ;
 
             debug('removing dialog key on BYE for dialog') ;

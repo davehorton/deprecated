@@ -104,7 +104,7 @@ function session(options){
                 else if( code >= 200 ) {
                     res.send = send;
                     if( destroy ) {
-                       req.mks && req.mks && req.mks.del( req.sessionID, function(){
+                       req.mks && req.mks && req.mks.del( req.id, function(){
                             send(code, status, opts);
                         }) ;
                     }
@@ -150,7 +150,7 @@ function session(options){
         }
 
         /* load session from storage and attach to request */
-        debug('fetching session for req.sessionID %s', req.id);
+        debug('fetching session for req.id %s', req.id);
         MKSession.loadFromStorage({store: store}, req.id, function(err, mks) {
             // error handling
             if (err) {
@@ -176,8 +176,8 @@ function session(options){
                 if( req.source === 'network' ) proxySend() ;
                 else if( req.isNewInvite ) proxyAck() ;
                 else if( req.method === 'BYE') {
-                    debug('deleting session id upon receiving response to our BYE for call-id: %s', req.sessionID) ;
-                    req.mks.del( req.sessionID, function() { next(); }) ;
+                    debug('deleting session id upon receiving response to our BYE for call-id: %s', req.id) ;
+                    req.mks.del( req.id, function() { next(); }) ;
                     return ;
                 }
                 next();

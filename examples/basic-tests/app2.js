@@ -22,9 +22,6 @@ app.invite(function(req, res){
 app.on('sipdialog:create', function(e){
 	var dialog = e.target ;
 	debug('dialog created: ', dialog) ;
-	setTimeout(function() {
-		e.target.terminate() ;
-	}, 50) ;
 })
 .on('sipdialog:terminate', function(e){
 	debug('sip dialog terminated for reason: %s', e.reason) ;

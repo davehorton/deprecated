@@ -25,7 +25,7 @@ describe('dialog basics', function() {
 
                     setTimeout( function() {
                         appLocal.siprequest.bye({headers:{'call-id': res.get('call-id')}}) ;                       
-                    }, 100);
+                    }, 150);
                 }) ;   
             }) ;
         }) ;
@@ -57,6 +57,10 @@ describe('dialog basics', function() {
 
                     should.not.exist(err) ;
                     res.should.have.property('statusCode',200); 
+
+                    setTimeout( function() {
+                        appLocal.siprequest.bye({headers:{'call-id': res.get('call-id')}}) ;                       
+                    }, 150);
                 }) ;   
             }) ;
         }) ;
@@ -99,7 +103,7 @@ describe('dialog basics', function() {
 
                         setTimeout( function() {
                             appLocal.siprequest.bye({headers:{'call-id': res.get('call-id')}}) ;                       
-                        }, 100);
+                        }, 150);
                     }) ;   
                 }) ;
                 

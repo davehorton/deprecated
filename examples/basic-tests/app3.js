@@ -31,6 +31,8 @@ app.on('sipdialog:create', function(e){
 	var dialog = e.target ;
 	debug('sip dialog %s terminated for reason: %s', dialog.role, e.reason) ;
 	var other = e.session[ 'uac' === dialog.role ? 'uas' : 'uac'] ;
+	debug('going to terminate the other dialog: ', other) ;
+
 	other.terminate(function(err, req, res) {
 		e.session.status = 200 === res.statusCode ? 'ok' : 'not ok' ;
 		app.emit('session', e.session) ;

@@ -40,10 +40,14 @@ function dialog() {
         if( !req.sessionStore && req.source === 'network') return next('drachtio.dialog() requires drachtio.session() middleware to be installed prior') ;
        
         if( req.isNewInvite() && req.source === 'application' && res.statusCode === 200 ) {
+            //
+            //UAC: we received a 200 OK to our INVITE.
+            //Create a dialog when we send the ACK
+            //
             var ack = _.bind(res.ack, res) ;
             res.ack = function( opts, callback ) {
                 res.ack = ack ;
-                var dialog = new SipDialog( req ) ;
+                var dialog = new SipDialog( req, res ) ;
                
                 dialog.setConnectTime( res.time ); 
                 dialog.state = SipDialog.STABLE ;
@@ -64,7 +68,9 @@ function dialog() {
             }
         }
         if( req.isNewInvite() && req.source === 'network') {
-            /* proxy res.send to create dialog when sending 200 OK to INVITE */
+            //
+            //  UAS: proxy res.send to create dialog when sending 200 OK to INVITE 
+            //
             var send = _.bind(res.send, res) ;
             res.send = function( code, status, opts ) {
                 if( code >= 200 ) res.send = send ;
@@ -83,21 +89,21 @@ function dialog() {
                     }
                     reliable = _.find( require, function(s) { return -1 !== s.indexOf('100rel');}) ;
                 }
+                var rc = send( code, status, opts ) ;
+
                 if( 200 === code || reliable ) {
                     var dialog = new SipDialog( req, res ) ;
-
-                    /* set dialog id as a key to the session */
-                    req.mks.set( dialog.dialogId, dialog ) ;
-                    req.mks.save() ;
 
                     var msg = opts || status || {} ;
                     msg.headers = msg.headers || {} ;
                     if( 'content-type' in msg.headers ) dialog.local['content-type'] = msg.headers['content-type'] ;
                     dialog.local.sdp = msg.body ;
 
-                    return send( code, status, opts ) ;
+                    /* set dialog id as a key to the session */
+                    req.mks.set( dialog.id, dialog ) ;
+                    req.mks.save() ;
                 }
-                else send( code, status, opts ) ;
+                return rc ;
             }
             return next() ;
         }
@@ -107,9 +113,9 @@ function dialog() {
             debug('request does not have a dialog id, next..') ;
             return next() ;
         }
-        var dialog = req.mks.get( req.dialogId ) ;
+        var dialog = req.mks.get( 'sipdialog:' + req.dialogId ) ;
         if( !dialog ) {
-            debug('dialog not found for id %s', req.dialogId);
+            debug('dialog not found for dialogId %s', 'sipdialog:' + req.dialogId);
             return next() ;
         }
         debug('loaded dialog ', dialog)
@@ -124,33 +130,22 @@ function dialog() {
 
         switch( req.method ) {
         case 'ACK':
-            if( (dialog.state === SipDialog.PENDING || dialog.state === SipDialog.EARLY) && req.source === 'network') {
-                dialog.setConnectTime( req.msg.time ); 
-                dialog.state = SipDialog.STABLE ;
-                dialog.local.tag = req.get('to').tag ;
-                var e = new Event({
-                    target: dialog
-                    ,mks: req.mks
-                    ,req: req
-                    ,res: res
-                }) ;
-                e.emit( req.app, 'sipdialog:create') ;
-             }
-            break ;
-
         case 'PRACK':
             if( (dialog.state === SipDialog.PENDING || dialog.state === SipDialog.EARLY) && req.source === 'network') {
                 dialog.setConnectTime( req.msg.time ); 
-                dialog.state = SipDialog.EARLY ;
+                dialog.state = req.method === 'ACK' ? SipDialog.STABLE : SipDialog.EARLY ;
                 dialog.local.tag = req.get('to').tag ;
+                
+                req.mks.set( dialog.id, dialog ) ;
+                req.mks.save() ;
                 var e = new Event({
                     target: dialog
                     ,mks: req.mks
                     ,req: req
                     ,res: res
                 }) ;
-                e.emit( req.app, 'sipdialog:create-early') ;
-            }
+                e.emit( req.app, req.method === 'ACK' ? 'sipdialog:create': 'sipdialog:create-early') ;
+             }
             break ;
 
         case 'BYE':
@@ -165,8 +160,8 @@ function dialog() {
             }) ;
             e.emit( req.app, 'sipdialog:terminate') ;
 
-            debug('removing dialog key on BYE for dialog') ;
-            req.mks.del( sid ) ;
+            debug('removing dialog key on BYE for dialog %s', dialog.id) ;
+            req.mks.del( dialog.id ) ;
 
             break ;
         }

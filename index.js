@@ -67,6 +67,9 @@ function session(options){
     store.generate = function(req){
         if( req.mks ) return  ;
         var mks = req.mks || new MKSession({store:store}) ;
+        if( !req.id ) {
+            debug('store#generate: req.id undefined, req is ', req) ;
+        }
         mks.set( req.id ) ;
         mks.attachTo( req ) ;
     };

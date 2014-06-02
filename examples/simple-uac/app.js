@@ -14,6 +14,7 @@ app.on('connect', function() {
 	app.siprequest( config.remote_uri, {
 		body: config.sdp
 	}, function(err, req, res){
+		debug('received response to INVITE, err: ', err) ;
 		assert(!err) ;
 		if( res.statusCode === 200 ) req.session.user = 'jack jones' ;
 		if( res.statusCode >= 200 ) res.ack() ;

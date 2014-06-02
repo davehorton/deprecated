@@ -1,7 +1,8 @@
 var drachtio = require('drachtio')
 ,session = require('../..')
 ,assert = require('assert')
-,config = require('../fixtures/config') ;
+,config = require('../fixtures/config')
+,debug = require('debug')('simple-uas') ;
 
 var app = module.exports = drachtio() ;
 
@@ -10,9 +11,7 @@ app.connect( config.connect_opts ) ;
 app.use(session({app:app})) ;
 
 app.invite(function(req, res){
-	debug('setting session data')
     req.session.user='jack jones' ;
-    debug('sending 200 ok')
 	res.send( 200,{
 		body: config.sdp
 	}) ;
